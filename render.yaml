@@ -3,7 +3,7 @@ services:
     name: college-carpooling
     runtime: python3
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: bash start.sh
     envVars:
       - key: FLASK_ENV

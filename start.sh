@@ -28,5 +28,16 @@ fi
 
 echo "🌐 Starting server on port $PORT..."
 
-# Start the application with Gunicorn
-exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 30 app:app
+# Try to use Gunicorn, fall back to Flask if not available
+if python -c "import gunicorn" 2>/dev/null; then
+    echo "🐍 Using Gunicorn server..."
+    exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 30 app:app
+else
+    echo "🐍 Gunicorn not available, using Flask development server..."
+    exec python -c "
+from app import app
+import os
+port = int(os.environ.get('PORT', 5000))
+app.run(host='0.0.0.0', port=port)
+"
+fi
