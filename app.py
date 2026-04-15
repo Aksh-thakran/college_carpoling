@@ -6,13 +6,23 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
+
+# Database configuration - use absolute path for production
+if os.environ.get('FLASK_ENV') == 'production':
+    # In production, use a file in the instance folder or a persistent location
+    db_path = os.path.join(os.getcwd(), 'users.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Production settings
 if os.environ.get('FLASK_ENV') == 'production':
     app.config['DEBUG'] = False
     app.config['TESTING'] = False
+else:
+    app.config['DEBUG'] = True
 else:
     app.config['DEBUG'] = True
 
@@ -161,6 +171,10 @@ def rides():
             'created_at': ride.created_at
         })
     return render_template('rides.html', rides=rides_data)
+
+@app.route('/health')
+def health():
+    return {'status': 'healthy', 'message': 'College Carpooling API is running'}
 
 if __name__ == '__main__':
     with app.app_context():
