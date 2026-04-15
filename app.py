@@ -23,8 +23,6 @@ if os.environ.get('FLASK_ENV') == 'production':
     app.config['TESTING'] = False
 else:
     app.config['DEBUG'] = True
-else:
-    app.config['DEBUG'] = True
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -149,6 +147,43 @@ def offer_ride():
     db.session.commit()
     
     return {'success': True, 'message': 'Ride offered successfully!'}
+
+@app.route('/get_rides', methods=['GET'])
+@login_required
+def get_rides():
+    from_location = request.args.get('from')
+    to_location = request.args.get('to')
+    date = request.args.get('date')
+    vehicle_type = request.args.get('vehicle_type')
+    
+    query = Ride.query
+    if from_location:
+        query = query.filter_by(from_location=from_location)
+    if to_location:
+        query = query.filter_by(to_location=to_location)
+    if date:
+        query = query.filter_by(date=date)
+    if vehicle_type and vehicle_type != '':
+        query = query.filter_by(vehicle_type=vehicle_type)
+    
+    rides = query.all()
+    rides_data = []
+    for ride in rides:
+        driver = User.query.get(ride.driver_id)
+        rides_data.append({
+            'id': ride.id,
+            'driver': driver.username,
+            'from': ride.from_location,
+            'to': ride.to_location,
+            'date': ride.date,
+            'time': ride.time,
+            'seats': ride.seats,
+            'vehicle_type': ride.vehicle_type,
+            'contact': ride.contact,
+            'notes': ride.notes
+        })
+    
+    return {'rides': rides_data}
 
 @app.route('/rides')
 @login_required
