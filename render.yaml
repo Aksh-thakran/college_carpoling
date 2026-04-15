@@ -2,6 +2,7 @@ services:
   - type: web
     name: college-carpooling
     runtime: python3
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: bash start.sh
     envVars:
@@ -9,3 +10,5 @@ services:
         value: production
       - key: SECRET_KEY
         generateValue: true
+    # Note: Add a PostgreSQL database separately in Render dashboard
+    # Then add DATABASE_URL environment variable pointing to it

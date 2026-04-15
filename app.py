@@ -7,13 +7,15 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Database configuration - use absolute path for production
-if os.environ.get('FLASK_ENV') == 'production':
-    # In production, use a file in the instance folder or a persistent location
+# Database configuration
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Use PostgreSQL in production (Render provides this)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Use SQLite for local development
     db_path = os.path.join(os.getcwd(), 'users.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
