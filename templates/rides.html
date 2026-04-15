@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Rides - College Carpooling</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Available Rides</h1>
+        <p>Find and book rides from other students</p>
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a> |
+            <a href="{{ url_for('admin') }}">Admin</a> |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="form-section animate-fade-in">
+            <h2>🚗 All Available Rides</h2>
+
+            {% if rides %}
+                <div class="rides-grid">
+                    {% for ride in rides %}
+                    <div class="ride-card animate-slide-in" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                        <div class="ride-header">
+                            <strong>{{ ride.vehicle_type == '4-wheeler' and '🚗' or '🏍️' }} {{ ride.driver }}</strong>
+                            <span class="ride-date">{{ ride.date }} at {{ ride.time }}</span>
+                        </div>
+                        <div class="ride-route">
+                            <div class="route-point from">
+                                <span class="label">From:</span>
+                                <span class="location">{{ ride.from }}</span>
+                            </div>
+                            <div class="route-arrow">→</div>
+                            <div class="route-point to">
+                                <span class="label">To:</span>
+                                <span class="location">{{ ride.to }}</span>
+                            </div>
+                        </div>
+                        <div class="ride-details">
+                            <div class="detail-item">
+                                <span class="icon">👥</span>
+                                <span>{{ ride.seats }} seats available</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="icon">📞</span>
+                                <span>{{ ride.contact }}</span>
+                            </div>
+                        </div>
+                        {% if ride.notes %}
+                        <div class="ride-notes">
+                            <strong>Notes:</strong> {{ ride.notes }}
+                        </div>
+                        {% endif %}
+                        <button onclick="bookRide({{ ride.id }})" class="btn-book animate-hover">
+                            🎫 Book This Ride
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-rides animate-fade-in">
+                    <p>😔 No rides available yet.</p>
+                    <p>Be the first to <a href="{{ url_for('index') }}">offer a ride</a>!</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 College Carpooling Prototype</p>
+    </footer>
+
+    <script>
+        function bookRide(rideId) {
+            if (confirm('Are you sure you want to book this ride? (This is a prototype - booking will be simulated)')) {
+                // Add booking animation
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '🎉 Booking...';
+                button.disabled = true;
+                button.classList.add('animate-pulse');
+
+                setTimeout(() => {
+                    button.textContent = '✅ Booked!';
+                    button.classList.remove('animate-pulse');
+                    button.classList.add('booked-animation');
+                    setTimeout(() => {
+                        alert('Ride booked successfully! (This is a prototype - in a real app, this would handle actual booking)');
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.classList.remove('booked-animation');
+                    }, 1500);
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
