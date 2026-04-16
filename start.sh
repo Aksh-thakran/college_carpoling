@@ -11,9 +11,10 @@ echo "🚀 Starting College Carpooling deployment..."
 echo "📊 Initializing database..."
 python -c "
 try:
-    from app import app, db
+    from app import app, db, create_admin_user
     with app.app_context():
         db.create_all()
+        create_admin_user()
         print('✅ Database initialized successfully')
 except Exception as e:
     print(f'❌ Database initialization failed: {e}')

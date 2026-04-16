@@ -9,7 +9,7 @@ Your app is already configured for Render deployment! The following files have b
 - `requirements.txt` - All Python dependencies
 - `render.yaml` - Render deployment configuration
 - `start.sh` - Startup script for production
-- `app.py` - Updated for production environment
+- `app.py` - Updated for production environment and single admin account
 
 ### Step 2: Deploy to Render
 
@@ -30,6 +30,7 @@ Render will automatically set:
 If you want data to persist across deployments, add a PostgreSQL database in Render and set:
 - `DATABASE_URL` - connection string for your PostgreSQL database
 
+This app now uses a single pre-configured account instead of signup.
 If you use SQLite in Render free tier, the app now runs with a single Gunicorn thread to avoid SQLite threading issues.
 
 ### Step 4: Deploy
@@ -55,7 +56,7 @@ python app.py
 
 ## 📱 Features
 
-- ✅ User registration and login
+- ✅ Admin login only
 - ✅ Offer and book rides
 - ✅ Interactive map for location selection
 - ✅ Real-time ride search
@@ -69,7 +70,7 @@ python app.py
 - **Frontend:** HTML/CSS/JavaScript + Leaflet Maps
 - **Database:** SQLite for local development; PostgreSQL recommended for production (Render free tier)
 - **Deployment:** Render
-- **Authentication:** Flask-Login
+- **Authentication:** Flask-Login with a single admin account
 
 ## 🔧 File Structure
 

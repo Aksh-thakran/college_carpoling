@@ -10,6 +10,11 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
+# Single admin account configuration
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+
 # Database configuration
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
@@ -83,41 +88,18 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
+    flash('Signup is disabled. Please log in with the single account.')
+    return redirect(url_for('login'))
 
-        if not username or not email or not password:
-            flash('Please fill in all fields')
-            return redirect(url_for('signup'))
 
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists')
-            return redirect(url_for('signup'))
-
-        if User.query.filter_by(email=email).first():
-            flash('Email already exists')
-            return redirect(url_for('signup'))
-
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, email=email, password=hashed_password)
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            flash('Account could not be created. Please try a different username or email.')
-            return redirect(url_for('signup'))
-        except Exception as e:
-            db.session.rollback()
-            app.logger.exception('Signup failed')
-            flash('Unexpected error while creating your account. Please try again.')
-            return redirect(url_for('signup'))
-
-        flash('Account created successfully! Please log in.')
-        return redirect(url_for('login'))
-    return render_template('signup.html')
+def create_admin_user():
+    existing_admin = User.query.filter_by(username=ADMIN_USERNAME).first()
+    if existing_admin is None:
+        hashed_password = generate_password_hash(ADMIN_PASSWORD, method='pbkdf2:sha256')
+        admin = User(username=ADMIN_USERNAME, email=ADMIN_EMAIL, password=hashed_password)
+        db.session.add(admin)
+        db.session.commit()
+        app.logger.info('Created single admin account: %s', ADMIN_USERNAME)
 
 @app.route('/logout')
 @login_required
@@ -243,6 +225,7 @@ def health():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        create_admin_user()
 
     # Get port from environment variable (Render sets this)
     port = int(os.environ.get('PORT', 5000))
