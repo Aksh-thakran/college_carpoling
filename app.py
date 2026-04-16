@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
+from pathlib import Path
 import os
 
 app = Flask(__name__)
@@ -10,12 +13,14 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 # Database configuration
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
-    # Use PostgreSQL in production (Render provides this)
+    # Render may provide a Postgres URL with postgres://; SQLAlchemy prefers postgresql://
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
     # Use SQLite for local development
-    db_path = os.path.join(os.getcwd(), 'users.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    db_path = Path(os.getcwd()) / 'users.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path.as_posix()}'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -64,7 +69,7 @@ def login():
     if request.method == 'POST':
         identifier = request.form.get('email')  # This field now accepts email or username
         password = request.form.get('password')
-        user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
+        user = User.query.filter(or_(User.email == identifier, User.username == identifier)).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
             next_page = request.args.get('next')
@@ -79,20 +84,34 @@ def signup():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        
+
+        if not username or not email or not password:
+            flash('Please fill in all fields')
+            return redirect(url_for('signup'))
+
         if User.query.filter_by(username=username).first():
             flash('Username already exists')
             return redirect(url_for('signup'))
-        
+
         if User.query.filter_by(email=email).first():
             flash('Email already exists')
             return redirect(url_for('signup'))
-        
+
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(username=username, email=email, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Account could not be created. Please try a different username or email.')
+            return redirect(url_for('signup'))
+        except Exception as e:
+            db.session.rollback()
+            app.logger.exception('Signup failed')
+            flash('Unexpected error while creating your account. Please try again.')
+            return redirect(url_for('signup'))
+
         flash('Account created successfully! Please log in.')
         return redirect(url_for('login'))
     return render_template('signup.html')
@@ -208,6 +227,11 @@ def rides():
             'created_at': ride.created_at
         })
     return render_template('rides.html', rides=rides_data)
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    app.logger.exception('Unhandled exception')
+    return render_template('error.html', message='An unexpected error occurred. Please try again later.'), 500
 
 @app.route('/health')
 def health():

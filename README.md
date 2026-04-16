@@ -27,6 +27,9 @@ Render will automatically set:
 - `PORT` - The port your app should listen on
 - `SECRET_KEY` - Auto-generated secure key
 
+If you want data to persist across deployments, add a PostgreSQL database in Render and set:
+- `DATABASE_URL` - connection string for your PostgreSQL database
+
 ### Step 4: Deploy
 Click **"Create Web Service"** and wait for deployment to complete.
 
@@ -62,7 +65,7 @@ python app.py
 
 - **Backend:** Flask + SQLAlchemy
 - **Frontend:** HTML/CSS/JavaScript + Leaflet Maps
-- **Database:** SQLite (production-ready)
+- **Database:** SQLite for local development; PostgreSQL recommended for production
 - **Deployment:** Render
 - **Authentication:** Flask-Login
 
