@@ -18,9 +18,12 @@ if database_url:
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    # Use SQLite for local development
+    # Use SQLite for local development or Render free tier
     db_path = Path(os.getcwd()) / 'users.db'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path.as_posix()}'
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'check_same_thread': False}
+    }
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

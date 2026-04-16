@@ -30,6 +30,8 @@ Render will automatically set:
 If you want data to persist across deployments, add a PostgreSQL database in Render and set:
 - `DATABASE_URL` - connection string for your PostgreSQL database
 
+If you use SQLite in Render free tier, the app now runs with a single Gunicorn thread to avoid SQLite threading issues.
+
 ### Step 4: Deploy
 Click **"Create Web Service"** and wait for deployment to complete.
 
@@ -65,7 +67,7 @@ python app.py
 
 - **Backend:** Flask + SQLAlchemy
 - **Frontend:** HTML/CSS/JavaScript + Leaflet Maps
-- **Database:** SQLite for local development; PostgreSQL recommended for production
+- **Database:** SQLite for local development; PostgreSQL recommended for production (Render free tier)
 - **Deployment:** Render
 - **Authentication:** Flask-Login
 

@@ -31,7 +31,7 @@ echo "🌐 Starting server on port $PORT..."
 # Try to use Gunicorn, fall back to Flask if not available
 if python -c "import gunicorn" 2>/dev/null; then
     echo "🐍 Using Gunicorn server..."
-    exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 30 app:app
+    exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 1 --timeout 30 app:app
 else
     echo "🐍 Gunicorn not available, using Flask development server..."
     exec python -c "
